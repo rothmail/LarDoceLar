@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lar Doce Lar - Pets Disponíveis</title>
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+
+<body class="bg-primary">
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-content">
+            <h1 class="logo-text">🐾 Lar Doce Lar</h1>
+            <nav class="nav">
+                <a href="dashboard.html" class="nav-link active">Pets</a>
+                <a href="perfil.html" class="nav-link">Meu Perfil</a>
+                <button onclick="handleLogout()" class="btn btn-secondary btn-sm">Sair</button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Search and Filters -->
+        <div class="search-section">
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Buscar por nome, espécie ou raça..."
+                    onkeyup="handleSearch()">
+                <span class="search-icon">🔍</span>
+            </div>
+
+            <div class="filters">
+                <select id="filter-especie" onchange="handleFilter()">
+                    <option value="">Todas as espécies</option>
+                    <option value="Cachorro">Cachorros</option>
+                    <option value="Gato">Gatos</option>
+                    <option value="Coelho">Coelhos</option>
+                    <option value="Outros">Outros</option>
+                </select>
+
+                <!-- Botão de cadastro (apenas para abrigos) -->
+                <button id="btn-cadastrar" class="btn btn-primary" onclick="window.location.href='cadastrar-pet.html'"
+                    style="display: none;">
+                    + Cadastrar Pet
+                </button>
+            </div>
+        </div>
+
+        <!-- Pets Grid -->
+        <div id="pets-grid" class="pets-grid">
+            <!-- Carregando... -->
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Carregando pets...</p>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="empty-state hidden">
+            <p class="empty-text">😿 Nenhum pet encontrado</p>
+            <p class="empty-subtext">Tente ajustar os filtros de busca</p>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        let allPets = [];
+        let currentUser = null;
+
+        // Carregar dados ao iniciar
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Verificar autenticação
+            if (!checkAuth()) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Carregar usuário
+            try {
+                currentUser = await getProfile();
+
+                // Mostrar botão de cadastro para abrigos
+                if (currentUser.tipo === 'abrigo') {
+                    document.getElementById('btn-cadastrar').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar perfil:', error);
+            }
+
+            // Carregar pets
+            await loadPets();
+        });
+
+        // Carregar pets
+        async function loadPets() {
+            try {
+                const response = await fetch(`${API_URL}/pets`);
+                const data = await response.json();
+
+                allPets = data;
+                renderPets(allPets);
+            } catch (error) {
+                showToast('Erro ao carregar pets', 'error');
+                console.error('Erro:', error);
+            }
+        }
+
+        // Renderizar pets
+        function renderPets(pets) {
+            const grid = document.getElementById('pets-grid');
+            const emptyState = document.getElementById('empty-state');
+
+            if (pets.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            grid.innerHTML = pets.map(pet => `
+                            <div class="pet-card" onclick="window.location.href='detalhes-pet.html?id=${pet.id}'">
+                                <div class="pet-image">
+                                    ${pet.imagem ?
+                    `<img src="${API_URL}${pet.imagem}" alt="${pet.nome}">` :
+                    `<div class="pet-image-placeholder">🐾</div>`
+                }
+                                </div>
+                                <div class="pet-info">
+                                    <h3 class="pet-name">${pet.nome}</h3>
+                                    <p class="pet-detail">📍 ${pet.especie}${pet.raca ? ' • ' + pet.raca : ''}</p>
+                                    <p class="pet-detail">📅 ${pet.idade}</p>
+                                    <div class="pet-footer">
+                                        <span class="pet-responsible">Por: ${pet.responsavel_nome}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            `).join('');
+        }
+
+        // Busca
+        function handleSearch() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const especieFilter = document.getElementById('filter-especie').value;
+
+            let filtered = allPets;
+
+            if (searchTerm) {
+                filtered = filtered.filter(pet =>
+                    pet.nome.toLowerCase().includes(searchTerm) ||
+                    pet.especie.toLowerCase().includes(searchTerm) ||
+                    (pet.raca && pet.raca.toLowerCase().includes(searchTerm))
+                );
+            }
+
+            if (especieFilter) {
+                filtered = filtered.filter(pet => pet.especie === especieFilter);
+            }
+
+            renderPets(filtered);
+        }
+
+        // Filtro
+        function handleFilter() {
+            handleSearch();
+        }
+    </script>
+</body>
+
+</html>

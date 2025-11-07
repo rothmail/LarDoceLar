@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Pet - Lar Doce Lar</title>
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+
+<body class="bg-primary">
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-content">
+            <h1 class="logo-text">🐾 Lar Doce Lar</h1>
+            <nav class="nav">
+                <a href="dashboard.html" class="nav-link">Pets</a>
+                <a href="perfil.html" class="nav-link">Meu Perfil</a>
+                <button onclick="handleLogout()" class="btn btn-secondary btn-sm">Sair</button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <button onclick="window.location.href='dashboard.html'" class="btn btn-ghost mb-medium">
+            ← Voltar
+        </button>
+
+        <div id="pet-details" class="pet-details-container">
+            <!-- Loading -->
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Carregando...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Contato -->
+    <div id="contact-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Informações para Contato</h3>
+                <button class="modal-close" onclick="closeContactModal()">✕</button>
+            </div>
+            <div class="modal-body" id="contact-info">
+                <!-- Será preenchido dinamicamente -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeContactModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        let currentPet = null;
+        let currentUser = null;
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Verificar autenticação
+            if (!checkAuth()) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Carregar usuário
+            currentUser = await getProfile();
+
+            // Obter ID do pet
+            const urlParams = new URLSearchParams(window.location.search);
+            const petId = urlParams.get('id');
+
+            if (!petId) {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            await loadPet(petId);
+        });
+
+        async function loadPet(id) {
+            try {
+                const response = await fetch(`${API_URL}/pets/${id}`);
+                if (!response.ok) throw new Error('Pet não encontrado');
+
+                currentPet = await response.json();
+                renderPetDetails();
+            } catch (error) {
+                showToast('Erro ao carregar pet', 'error');
+                console.error('Erro:', error);
+                setTimeout(() => window.location.href = 'dashboard.html', 2000);
+            }
+        }
+
+        function renderPetDetails() {
+            const container = document.getElementById('pet-details');
+            const isOwner = currentUser && currentPet.usuario_id === currentUser.id;
+
+            container.innerHTML = `
+        <div class="pet-details-grid">
+          <!-- Imagem -->
+          <div class="pet-details-image">
+            ${currentPet.imagem ?
+                    `<img src="${API_URL}${currentPet.imagem}" alt="${currentPet.nome}">` :
+                    `<div class="pet-image-placeholder-large">🐾</div>`
+                }
+          </div>
+
+          <!-- Informações -->
+          <div class="pet-details-info">
+            <div class="pet-details-header">
+              <div>
+                <h1 class="pet-details-name">${currentPet.nome}</h1>
+                <span class="pet-status pet-status-${currentPet.status}">
+                  ${getStatusText(currentPet.status)}
+                </span>
+              </div>
+              ${isOwner ? `
+                <div class="pet-actions">
+                  <button onclick="editPet()" class="btn btn-secondary btn-sm">
+                    ✏️ Editar
+                  </button>
+                  <button onclick="deletePet()" class="btn btn-danger btn-sm">
+                    🗑️ Excluir
+                  </button>
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="pet-info-grid">
+              <div class="info-item">
+                <span class="info-label">Espécie:</span>
+                <span class="info-value">${currentPet.especie}</span>
+              </div>
+              ${currentPet.raca ? `
+                <div class="info-item">
+                  <span class="info-label">Raça:</span>
+                  <span class="info-value">${currentPet.raca}</span>
+                </div>
+              ` : ''}
+              <div class="info-item">
+                <span class="info-label">Idade:</span>
+                <span class="info-value">${currentPet.idade}</span>
+              </div>
+            </div>
+
+            ${currentPet.descricao ? `
+              <div class="pet-description">
+                <h3>História</h3>
+                <p>${currentPet.descricao}</p>
+              </div>
+            ` : ''}
+
+            <!-- Informações do Responsável -->
+            <div class="responsible-info">
+              <h3>Responsável</h3>
+              <p class="responsible-name">👤 ${currentPet.responsavel_nome}</p>
+              
+              ${!isOwner && currentPet.status === 'disponivel' ? `
+                <button onclick="showContactModal()" class="btn btn-primary btn-full mt-medium">
+                  💬 Entrar em Contato
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                'disponivel': 'Disponível',
+                'em_processo': 'Em Processo',
+                'adotado': 'Adotado'
+            };
+            return statusMap[status] || status;
+        }
+
+        function showContactModal() {
+            const modal = document.getElementById('contact-modal');
+            const contactInfo = document.getElementById('contact-info');
+
+            contactInfo.innerHTML = `
+        <div class="contact-item">
+          <strong>Nome:</strong> ${currentPet.responsavel_nome}
+        </div>
+        <div class="contact-item">
+          <strong>Email:</strong> 
+          <a href="mailto:${currentPet.responsavel_email}">${currentPet.responsavel_email}</a>
+        </div>
+        ${currentPet.responsavel_telefone ? `
+          <div class="contact-item">
+            <strong>Telefone:</strong> 
+            <a href="tel:${currentPet.responsavel_telefone}">${currentPet.responsavel_telefone}</a>
+          </div>
+        ` : ''}
+        ${currentPet.responsavel_endereco ? `
+          <div class="contact-item">
+            <strong>Endereço:</strong> ${currentPet.responsavel_endereco}
+          </div>
+        ` : ''}
+        <div class="contact-message">
+          <p>Entre em contato para conhecer ${currentPet.nome} e iniciar o processo de adoção! 🐾</p>
+        </div>
+      `;
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeContactModal() {
+            document.getElementById('contact-modal').classList.add('hidden');
+        }
+
+        function editPet() {
+            window.location.href = `cadastrar-pet.html?id=${currentPet.id}`;
+        }
+
+        async function deletePet() {
+            if (!confirm(`Tem certeza que deseja excluir ${currentPet.nome}?`)) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/pets/${currentPet.id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Erro ao excluir pet');
+                }
+
+                showToast('Pet excluído com sucesso!', 'success');
+                setTimeout(() => window.location.href = 'perfil.html', 1500);
+            } catch (error) {
+                showToast(error.message, 'error');
+                console.error('Erro:', error);
+            }
+        }
+
+        // Fechar modal ao clicar fora
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('contact-modal');
+            if (e.target === modal) {
+                closeContactModal();
+            }
+        });
+    </script>
+</body>
+
+</html>

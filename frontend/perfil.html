@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil - Lar Doce Lar</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body class="bg-primary">
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-content">
+            <h1 class="logo-text">🐾 Lar Doce Lar</h1>
+            <nav class="nav">
+                <a href="dashboard.html" class="nav-link">Pets</a>
+                <a href="perfil.html" class="nav-link active">Meu Perfil</a>
+                <button onclick="handleLogout()" class="btn btn-secondary btn-sm">Sair</button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Informações do Perfil -->
+        <div class="profile-section">
+            <h2>Meu Perfil</h2>
+
+            <form id="profile-form" onsubmit="handleUpdateProfile(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="nome">Nome</label>
+                        <input type="text" id="nome" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" disabled>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tipo">Tipo de Conta</label>
+                        <input type="text" id="tipo" disabled>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="telefone">Telefone</label>
+                        <input type="tel" id="telefone" placeholder="(00) 00000-0000">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="endereco">Endereço</label>
+                        <textarea id="endereco" rows="3" placeholder="Rua, número, cidade, estado..."></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    💾 Salvar Alterações
+                </button>
+            </form>
+        </div>
+
+        <!-- Meus Pets (apenas para abrigos) -->
+        <div id="my-pets-section" class="my-pets-section hidden">
+            <div class="section-header">
+                <h2>Meus Pets Cadastrados</h2>
+                <button onclick="window.location.href='cadastrar-pet.html'" class="btn btn-primary">
+                    + Cadastrar Novo Pet
+                </button>
+            </div>
+
+            <div id="my-pets-grid" class="pets-grid">
+                <!-- Loading -->
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Carregando seus pets...</p>
+                </div>
+            </div>
+
+            <div id="my-pets-empty" class="empty-state hidden">
+                <p class="empty-text">😿 Você ainda não cadastrou nenhum pet</p>
+                <button onclick="window.location.href='cadastrar-pet.html'" class="btn btn-primary mt-medium">
+                    + Cadastrar Primeiro Pet
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        let currentUser = null;
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Verificar autenticação
+            if (!checkAuth()) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            await loadProfile();
+        });
+
+        async function loadProfile() {
+            try {
+                currentUser = await getProfile();
+
+                // Preencher formulário
+                document.getElementById('nome').value = currentUser.nome || '';
+                document.getElementById('email').value = currentUser.email || '';
+                document.getElementById('tipo').value = currentUser.tipo === 'abrigo' ? 'Abrigo/Protetor' : 'Adotante';
+                document.getElementById('telefone').value = currentUser.telefone || '';
+                document.getElementById('endereco').value = currentUser.endereco || '';
+
+                // Se for abrigo, carregar pets
+                if (currentUser.tipo === 'abrigo') {
+                    document.getElementById('my-pets-section').classList.remove('hidden');
+                    await loadMyPets();
+                }
+            } catch (error) {
+                showToast('Erro ao carregar perfil', 'error');
+                console.error('Erro:', error);
+            }
+        }
+
+        async function handleUpdateProfile(event) {
+            event.preventDefault();
+
+            const profileData = {
+                nome: document.getElementById('nome').value,
+                telefone: document.getElementById('telefone').value,
+                endereco: document.getElementById('endereco').value
+            };
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/auth/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(profileData)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Erro ao atualizar perfil');
+                }
+
+                showToast('Perfil atualizado com sucesso!', 'success');
+            } catch (error) {
+                showToast(error.message, 'error');
+                console.error('Erro:', error);
+            }
+        }
+
+        async function loadMyPets() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/pets/user/my-pets`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Erro ao carregar pets');
+
+                const pets = await response.json();
+                renderMyPets(pets);
+            } catch (error) {
+                showToast('Erro ao carregar seus pets', 'error');
+                console.error('Erro:', error);
+            }
+        }
+
+        function renderMyPets(pets) {
+            const grid = document.getElementById('my-pets-grid');
+            const emptyState = document.getElementById('my-pets-empty');
+
+            if (pets.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            grid.innerHTML = pets.map(pet => `
+        <div class="pet-card">
+          <div class="pet-image">
+            ${pet.imagem ?
+                    `<img src="${API_URL}${pet.imagem}" alt="${pet.nome}">` :
+                    `<div class="pet-image-placeholder">🐾</div>`
+                }
+            <span class="pet-status-badge pet-status-${pet.status}">
+              ${getStatusText(pet.status)}
+            </span>
+          </div>
+          <div class="pet-info">
+            <h3 class="pet-name">${pet.nome}</h3>
+            <p class="pet-detail">📍 ${pet.especie}${pet.raca ? ' • ' + pet.raca : ''}</p>
+            <p class="pet-detail">📅 ${pet.idade}</p>
+            <div class="pet-actions-footer">
+              <button onclick="window.location.href='detalhes-pet.html?id=${pet.id}'" class="btn btn-sm btn-secondary">
+                Ver Detalhes
+              </button>
+              <button onclick="window.location.href='cadastrar-pet.html?id=${pet.id}'" class="btn btn-sm btn-ghost">
+                ✏️ Editar
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                'disponivel': 'Disponível',
+                'em_processo': 'Em Processo',
+                'adotado': 'Adotado'
+            };
+            return statusMap[status] || status;
+        }
+    </script>
+</body>
+
+</html>
