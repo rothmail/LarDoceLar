@@ -25,8 +25,6 @@ Este é um projeto de portfólio que demonstra uma aplicação web completa com:
 - ✅ Pasta uploads criada automaticamente
 - ✅ Arquivo .env de exemplo atualizado
 
-Ver detalhes em [CHANGELOG.md](CHANGELOG.md)
-
 ## 🎨 Paleta de Cores
 
 - `#EEE5C2` - Bege claro (fundo)
@@ -53,7 +51,7 @@ Ver detalhes em [CHANGELOG.md](CHANGELOG.md)
 ## 📁 Estrutura do Projeto
 
 ```
-transpiled/
+lardocelar
 ├── backend/
 │   ├── config/
 │   │   └── database.js          # Conexão MySQL
