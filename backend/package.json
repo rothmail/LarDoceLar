@@ -1,7 +1,7 @@
 {
-    "name": "lar-doce-lar",
+    "name": "lardocelar",
     "version": "1.0.0",
-    "description": "Backend da plataforma Lar Doce Lar - Adoção de Animais",
+    "description": "Plataforma Lar Doce Lar - Adoção de Animais",
     "main": "server.js",
     "scripts": {
         "start": "node server.js",

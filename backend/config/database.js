@@ -1,8 +1,7 @@
 // Configuração da conexão com MySQL
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-// Pool de conexões para melhor performance
 const pool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
@@ -14,17 +13,15 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
-// Usar promises ao invés de callbacks
-const promisePool = pool.promise();
-
 // Testar conexão
-pool.getConnection((err, connection) => {
-    if (err) {
+(async () => {
+    try {
+        const conn = await pool.getConnection();
+        console.log('✅ MySQL conectado com sucesso!');
+        conn.release();
+    } catch (err) {
         console.error('❌ Erro ao conectar ao MySQL:', err.message);
-        return;
     }
-    console.log('✅ MySQL conectado com sucesso!');
-    connection.release();
-});
+})();
 
-module.exports = promisePool;
+module.exports = pool;

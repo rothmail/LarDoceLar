@@ -15,38 +15,28 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Servir arquivos estáticos (uploads)
+// Servir arquivos estáticos
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Rotas
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/pets', require('./routes/pets'));
-app.use('/api/upload', require('./routes/upload'));
+// (Futuras rotas de pets/upload também aqui)
 
-// Rota de teste
+// Rota base
 app.get('/', (req, res) => {
     res.json({
         message: 'API Lar Doce Lar - Plataforma de Adoção de Animais',
-        version: '1.0.0',
-        endpoints: {
-            auth: '/api/auth',
-            pets: '/api/pets',
-            upload: '/api/upload'
-        }
+        version: '1.0.0'
     });
 });
 
-// Tratamento de erros 404
-app.use((req, res) => {
-    res.status(404).json({ error: 'Rota não encontrada' });
-});
+// Erros 404
+app.use((req, res) => res.status(404).json({ error: 'Rota não encontrada' }));
 
-// Tratamento de erros global
+// Erros gerais
 app.use((err, req, res, next) => {
-    console.error('Erro:', err);
-    res.status(500).json({
-        error: err.message || 'Erro interno do servidor'
-    });
+    console.error('Erro global:', err);
+    res.status(500).json({ error: 'Erro interno do servidor' });
 });
 
 // Iniciar servidor
@@ -59,5 +49,3 @@ app.listen(PORT, () => {
 ========================================
   `);
 });
-
-module.exports = app;

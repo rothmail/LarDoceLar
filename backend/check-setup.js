@@ -64,7 +64,7 @@ if (!fs.existsSync('./.env')) {
         warnings.push('⚠️  JWT_SECRET está usando o valor padrão. Altere para produção!');
     }
 
-    if (process.env.DB_PASSWORD === 'sua_senha_aqui' || process.env.DB_PASSWORD === '') {
+    if (process.env.DB_PASSWORD === 'root' || process.env.DB_PASSWORD === '') {
         warnings.push('⚠️  DB_PASSWORD não configurado. Verifique a senha do MySQL!');
     }
 }

@@ -21,33 +21,34 @@
         </div>
     </header>
 
-    <div class="container">
+    <!-- Main content -->
+    <main class="container">
         <div class="form-container">
             <div class="form-header">
-                <button onclick="window.location.href='dashboard.html'" class="btn btn-ghost">
-                    ← Voltar
-                </button>
+                <button onclick="window.location.href='dashboard.html'" class="btn btn-ghost">← Voltar</button>
                 <h2 id="form-title">Cadastrar Novo Pet</h2>
             </div>
 
             <form id="pet-form" onsubmit="handleSubmit(event)">
                 <!-- Upload de Imagem -->
                 <div class="form-group">
-                    <label>Foto do Pet</label>
+                    <label for="image-input">Foto do Pet</label>
                     <div class="image-upload-area">
                         <div id="image-preview" class="image-preview hidden">
-                            <img id="preview-img" src="" alt="Preview">
+                            <img id="preview-img" src="" alt="Preview da imagem do pet">
                             <button type="button" class="btn-remove-image" onclick="removeImage()">✕</button>
                         </div>
-                        <label id="upload-label" for="image-input" class="upload-label">
+
+                        <div id="upload-label" class="upload-label" role="button" tabindex="0"
+                            onclick="document.getElementById('image-input').click()">
                             <div class="upload-placeholder">
                                 <span class="upload-icon">📷</span>
                                 <p>Clique para enviar</p>
                                 <p class="upload-hint">PNG, JPG até 5MB</p>
                             </div>
-                            <input type="file" id="image-input" accept="image/*" onchange="handleImageUpload(event)"
-                                hidden>
-                        </label>
+                        </div>
+
+                        <input type="file" id="image-input" accept="image/*" onchange="handleImageUpload(event)" hidden>
                     </div>
                 </div>
 
@@ -77,7 +78,7 @@
 
                 <!-- Descrição -->
                 <div class="form-group">
-                    <label for="descricao">História/Descrição</label>
+                    <label for="descricao">História / Descrição</label>
                     <textarea id="descricao" rows="5"
                         placeholder="Conte a história deste pet, personalidade, cuidados especiais..."></textarea>
                 </div>
@@ -103,7 +104,7 @@
                 </div>
             </form>
         </div>
-    </div>
+    </main>
 
     <!-- Toast Notification -->
     <div id="toast" class="toast hidden"></div>
@@ -189,7 +190,7 @@
                 formData.append('image', file);
 
                 const token = localStorage.getItem('token');
-                const response = await fetch(`${API_URL}/upload`, {
+                const response = await fetch(`${API_URL}/uploads`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`

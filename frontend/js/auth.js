@@ -68,56 +68,44 @@ async function handleLogin(event) {
 async function handleRegister(event) {
     event.preventDefault();
 
-    const nome = document.getElementById('register-nome').value;
-    const email = document.getElementById('register-email').value;
+    const nome = document.getElementById('register-nome').value.trim();
+    const email = document.getElementById('register-email').value.trim();
     const senha = document.getElementById('register-senha').value;
     const tipo = document.getElementById('register-tipo').value;
 
-    // Validar senha
     if (senha.length < 6) {
         showToast('A senha deve ter no mínimo 6 caracteres', 'error');
         return;
     }
 
-    // Mostrar loading
     const loadingOverlay = document.getElementById('loading-overlay');
-    if (loadingOverlay) {
-        loadingOverlay.classList.remove('hidden');
-    }
+    loadingOverlay?.classList.remove('hidden');
 
     try {
         const response = await fetch(`${API_URL}/auth/register`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nome, email, senha, tipo })
         });
 
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.error || 'Erro ao criar conta');
+            console.error('Erro do servidor:', data);
+            throw new Error(data.error || `Erro ${response.status}: falha no cadastro`);
         }
 
-        // Salvar token e usuário
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
 
         showToast('Conta criada com sucesso!', 'success');
 
-        // Redirecionar para dashboard
-        setTimeout(() => {
-            window.location.href = 'dashboard.html';
-        }, 1000);
-
+        setTimeout(() => (window.location.href = 'dashboard.html'), 1000);
     } catch (error) {
-        showToast(error.message, 'error');
         console.error('Erro no registro:', error);
+        showToast(error.message, 'error');
     } finally {
-        if (loadingOverlay) {
-            loadingOverlay.classList.add('hidden');
-        }
+        loadingOverlay?.classList.add('hidden');
     }
 }
 

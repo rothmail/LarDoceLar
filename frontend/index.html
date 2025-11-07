@@ -2,106 +2,108 @@
 <html lang="pt-BR">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lar Doce Lar - Login</title>
-    <link rel="stylesheet" href="./css/style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lar Doce Lar - Cadastrar Novo Pet</title>
+    <link rel="stylesheet" href="./css/style.css" />
 </head>
 
 <body class="bg-primary">
-    <div class="container">
-        <div class="login-container">
-            <!-- Logo/Header -->
-            <div class="text-center mb-large">
-                <h1 class="logo-text">🐾 Lar Doce Lar</h1>
-                <p class="subtitle">Conectando corações a patinhas</p>
-            </div>
+    <header class="navbar">
+        <div class="navbar-content">
+            <h1 class="logo-text">🐾 Lar Doce Lar</h1>
+            <nav>
+                <a href="pets.html">Pets</a>
+                <a href="perfil.html">Meu Perfil</a>
+                <button class="btn btn-yellow">Sair</button>
+            </nav>
+        </div>
+    </header>
 
-            <!-- Tabs -->
-            <div class="tabs">
-                <button class="tab-btn active" data-tab="login">Entrar</button>
-                <button class="tab-btn" data-tab="register">Cadastrar</button>
-            </div>
+    <main class="container">
+        <section class="form-section">
+            <button onclick="window.history.back()" class="btn btn-secondary">
+                ← Voltar
+            </button>
 
-            <!-- Login Form -->
-            <div id="login-form" class="tab-content active">
-                <form onsubmit="handleLogin(event)">
-                    <div class="form-group">
-                        <label for="login-email">Email</label>
-                        <input type="email" id="login-email" required placeholder="seu@email.com">
+            <h2 class="form-title">Cadastrar Novo Pet</h2>
+            <hr class="divider" />
+
+            <form id="form-cadastrar-pet" onsubmit="handleAddPet(event)" enctype="multipart/form-data">
+                <!-- Foto do Pet -->
+                <div class="form-group">
+                    <label for="fotoPet">Foto do Pet</label>
+                    <div class="file-upload-area" id="file-upload">
+                        <input type="file" id="fotoPet" name="fotoPet" accept=".png, .jpg, .jpeg" required
+                            aria-label="Envie uma foto do pet" />
+                        <p class="file-hint">Clique para enviar<br><small>PNG, JPG até 5MB</small></p>
                     </div>
+                </div>
 
-                    <div class="form-group">
-                        <label for="login-senha">Senha</label>
-                        <input type="password" id="login-senha" required placeholder="••••••••">
-                    </div>
+                <!-- Nome -->
+                <div class="form-group">
+                    <label for="nomePet">Nome do Pet *</label>
+                    <input type="text" id="nomePet" name="nomePet" required placeholder="Ex: Rex, Mia, Bob..."
+                        aria-label="Nome do pet" />
+                </div>
 
-                    <button type="submit" class="btn btn-primary btn-full">
-                        Entrar
-                    </button>
-                </form>
-            </div>
+                <!-- Espécie -->
+                <div class="form-group">
+                    <label for="especiePet">Espécie *</label>
+                    <input type="text" id="especiePet" name="especiePet" required
+                        placeholder="Ex: Cachorro, Gato, Coelho..." aria-label="Espécie do pet" />
+                </div>
 
-            <!-- Register Form -->
-            <div id="register-form" class="tab-content">
-                <form onsubmit="handleRegister(event)">
-                    <div class="form-group">
-                        <label for="register-nome">Nome completo</label>
-                        <input type="text" id="register-nome" required placeholder="João Silva">
-                    </div>
+                <!-- Raça -->
+                <div class="form-group">
+                    <label for="racaPet">Raça *</label>
+                    <input type="text" id="racaPet" name="racaPet" required placeholder="Ex: Vira-lata, Siamês, SRD..."
+                        aria-label="Raça do pet" />
+                </div>
 
-                    <div class="form-group">
-                        <label for="register-email">Email</label>
-                        <input type="email" id="register-email" required placeholder="seu@email.com">
-                    </div>
+                <!-- Idade -->
+                <div class="form-group">
+                    <label for="idadePet">Idade *</label>
+                    <input type="text" id="idadePet" name="idadePet" required placeholder="Ex: 2 anos, 6 meses..."
+                        aria-label="Idade do pet" />
+                </div>
 
-                    <div class="form-group">
-                        <label for="register-senha">Senha</label>
-                        <input type="password" id="register-senha" required placeholder="••••••••" minlength="6">
-                    </div>
+                <!-- Sexo -->
+                <div class="form-group">
+                    <label for="sexoPet">Sexo *</label>
+                    <select id="sexoPet" name="sexoPet" required aria-label="Sexo do pet">
+                        <option value="">Selecione...</option>
+                        <option value="macho">Macho</option>
+                        <option value="femea">Fêmea</option>
+                    </select>
+                </div>
 
-                    <div class="form-group">
-                        <label for="register-tipo">Tipo de conta</label>
-                        <select id="register-tipo" required>
-                            <option value="adotante">Quero adotar um pet</option>
-                            <option value="abrigo">Sou abrigo/protetor</option>
-                        </select>
-                    </div>
+                <!-- Descrição -->
+                <div class="form-group">
+                    <label for="descricaoPet">Descrição *</label>
+                    <textarea id="descricaoPet" name="descricaoPet" rows="4" required
+                        placeholder="Conte um pouco sobre o pet..." aria-label="Descrição do pet"></textarea>
+                </div>
 
-                    <button type="submit" class="btn btn-primary btn-full">
-                        Criar conta
-                    </button>
-                </form>
-            </div>
+                <!-- Botão de envio -->
+                <button type="submit" class="btn btn-primary btn-full">
+                    Cadastrar Pet
+                </button>
+            </form>
 
-            <!-- Loading Overlay -->
+            <!-- Overlay de carregamento -->
             <div id="loading-overlay" class="loading-overlay hidden">
                 <div class="spinner"></div>
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
 
-    <!-- Toast Notification -->
+    <!-- Toast de feedback -->
     <div id="toast" class="toast hidden"></div>
 
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
-    <script>
-        // Tab switching
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const tab = btn.dataset.tab;
-
-                // Update buttons
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-
-                // Update content
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                document.getElementById(tab + '-form').classList.add('active');
-            });
-        });
-    </script>
+    <!-- Scripts -->
+    <script src="./js/api.js"></script>
+    <script src="./js/pets.js"></script>
 </body>
 
 </html>

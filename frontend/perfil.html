@@ -13,44 +13,46 @@
     <header class="header">
         <div class="container header-content">
             <h1 class="logo-text">🐾 Lar Doce Lar</h1>
-            <nav class="nav">
+            <nav class="nav" aria-label="Navegação principal">
                 <a href="dashboard.html" class="nav-link">Pets</a>
                 <a href="perfil.html" class="nav-link active">Meu Perfil</a>
-                <button onclick="handleLogout()" class="btn btn-secondary btn-sm">Sair</button>
+                <button type="button" onclick="handleLogout()" class="btn btn-secondary btn-sm">Sair</button>
             </nav>
         </div>
     </header>
 
-    <div class="container">
+    <main class="container">
         <!-- Informações do Perfil -->
-        <div class="profile-section">
+        <section class="profile-section">
             <h2>Meu Perfil</h2>
 
-            <form id="profile-form" onsubmit="handleUpdateProfile(event)">
+            <form id="profile-form" onsubmit="handleUpdateProfile(event)" autocomplete="on" novalidate>
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="nome">Nome</label>
-                        <input type="text" id="nome" required>
+                        <input type="text" id="nome" name="nome" autocomplete="name" placeholder="Seu nome" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" disabled>
+                        <label for="email">E-mail</label>
+                        <input type="email" id="email" name="email" autocomplete="email" disabled>
                     </div>
 
                     <div class="form-group">
                         <label for="tipo">Tipo de Conta</label>
-                        <input type="text" id="tipo" disabled>
+                        <input type="text" id="tipo" name="tipo" disabled>
                     </div>
 
                     <div class="form-group">
                         <label for="telefone">Telefone</label>
-                        <input type="tel" id="telefone" placeholder="(00) 00000-0000">
+                        <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000"
+                            autocomplete="tel">
                     </div>
 
                     <div class="form-group full-width">
                         <label for="endereco">Endereço</label>
-                        <textarea id="endereco" rows="3" placeholder="Rua, número, cidade, estado..."></textarea>
+                        <textarea id="endereco" name="endereco" rows="3" placeholder="Rua, número, cidade, estado..."
+                            autocomplete="street-address"></textarea>
                     </div>
                 </div>
 
@@ -58,19 +60,19 @@
                     💾 Salvar Alterações
                 </button>
             </form>
-        </div>
+        </section>
 
         <!-- Meus Pets (apenas para abrigos) -->
-        <div id="my-pets-section" class="my-pets-section hidden">
+        <section id="my-pets-section" class="my-pets-section hidden">
             <div class="section-header">
                 <h2>Meus Pets Cadastrados</h2>
-                <button onclick="window.location.href='cadastrar-pet.html'" class="btn btn-primary">
+                <button type="button" onclick="window.location.href='cadastrar-pet.html'" class="btn btn-primary">
                     + Cadastrar Novo Pet
                 </button>
             </div>
 
             <div id="my-pets-grid" class="pets-grid">
-                <!-- Loading -->
+                <!-- Estado de carregamento -->
                 <div class="loading-state">
                     <div class="spinner"></div>
                     <p>Carregando seus pets...</p>
@@ -79,15 +81,16 @@
 
             <div id="my-pets-empty" class="empty-state hidden">
                 <p class="empty-text">😿 Você ainda não cadastrou nenhum pet</p>
-                <button onclick="window.location.href='cadastrar-pet.html'" class="btn btn-primary mt-medium">
+                <button type="button" onclick="window.location.href='cadastrar-pet.html'"
+                    class="btn btn-primary mt-medium">
                     + Cadastrar Primeiro Pet
                 </button>
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
 
     <!-- Toast Notification -->
-    <div id="toast" class="toast hidden"></div>
+    <div id="toast" class="toast hidden" role="alert" aria-live="polite"></div>
 
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
@@ -111,7 +114,9 @@
                 // Preencher formulário
                 document.getElementById('nome').value = currentUser.nome || '';
                 document.getElementById('email').value = currentUser.email || '';
-                document.getElementById('tipo').value = currentUser.tipo === 'abrigo' ? 'Abrigo/Protetor' : 'Adotante';
+                document.getElementById('tipo').value = currentUser.tipo === 'abrigo'
+                    ? 'Abrigo/Protetor'
+                    : 'Adotante';
                 document.getElementById('telefone').value = currentUser.telefone || '';
                 document.getElementById('endereco').value = currentUser.endereco || '';
 
@@ -130,9 +135,9 @@
             event.preventDefault();
 
             const profileData = {
-                nome: document.getElementById('nome').value,
-                telefone: document.getElementById('telefone').value,
-                endereco: document.getElementById('endereco').value
+                nome: document.getElementById('nome').value.trim(),
+                telefone: document.getElementById('telefone').value.trim(),
+                endereco: document.getElementById('endereco').value.trim()
             };
 
             try {
@@ -181,7 +186,7 @@
             const grid = document.getElementById('my-pets-grid');
             const emptyState = document.getElementById('my-pets-empty');
 
-            if (pets.length === 0) {
+            if (!Array.isArray(pets) || pets.length === 0) {
                 grid.innerHTML = '';
                 emptyState.classList.remove('hidden');
                 return;
@@ -190,31 +195,30 @@
             emptyState.classList.add('hidden');
 
             grid.innerHTML = pets.map(pet => `
-        <div class="pet-card">
-          <div class="pet-image">
-            ${pet.imagem ?
-                    `<img src="${API_URL}${pet.imagem}" alt="${pet.nome}">` :
-                    `<div class="pet-image-placeholder">🐾</div>`
-                }
-            <span class="pet-status-badge pet-status-${pet.status}">
-              ${getStatusText(pet.status)}
-            </span>
-          </div>
-          <div class="pet-info">
-            <h3 class="pet-name">${pet.nome}</h3>
-            <p class="pet-detail">📍 ${pet.especie}${pet.raca ? ' • ' + pet.raca : ''}</p>
-            <p class="pet-detail">📅 ${pet.idade}</p>
-            <div class="pet-actions-footer">
-              <button onclick="window.location.href='detalhes-pet.html?id=${pet.id}'" class="btn btn-sm btn-secondary">
-                Ver Detalhes
-              </button>
-              <button onclick="window.location.href='cadastrar-pet.html?id=${pet.id}'" class="btn btn-sm btn-ghost">
-                ✏️ Editar
-              </button>
-            </div>
-          </div>
-        </div>
-      `).join('');
+                <article class="pet-card">
+                    <div class="pet-image">
+                        ${pet.imagem
+                    ? `<img src="${API_URL}${pet.imagem}" alt="${pet.nome}">`
+                    : `<div class="pet-image-placeholder" aria-label="Sem imagem">🐾</div>`}
+                        <span class="pet-status-badge pet-status-${pet.status}">
+                            ${getStatusText(pet.status)}
+                        </span>
+                    </div>
+                    <div class="pet-info">
+                        <h3 class="pet-name">${pet.nome}</h3>
+                        <p class="pet-detail">📍 ${pet.especie}${pet.raca ? ' • ' + pet.raca : ''}</p>
+                        <p class="pet-detail">📅 ${pet.idade}</p>
+                        <div class="pet-actions-footer">
+                            <button type="button" onclick="window.location.href='detalhes-pet.html?id=${pet.id}'" class="btn btn-sm btn-secondary">
+                                Ver Detalhes
+                            </button>
+                            <button type="button" onclick="window.location.href='cadastrar-pet.html?id=${pet.id}'" class="btn btn-sm btn-ghost">
+                                ✏️ Editar
+                            </button>
+                        </div>
+                    </div>
+                </article>
+            `).join('');
         }
 
         function getStatusText(status) {

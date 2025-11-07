@@ -1,8 +1,8 @@
 -- Script SQL para MySQL
 -- Lar Doce Lar - Plataforma de Adoção de Animais
-CREATE DATABASE IF NOT EXISTS lar_doce_lar;
+CREATE DATABASE IF NOT EXISTS lardocelar;
 
-USE lar_doce_lar;
+USE lardocelar;
 
 -- Tabela de Usuários
 CREATE TABLE IF NOT EXISTS usuarios (

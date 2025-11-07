@@ -1,28 +1,26 @@
-// Rotas de upload de arquivos
+// routes/uploadRoutes.js
 const express = require('express');
+const multer = require('multer');
+const path = require('path');
 const router = express.Router();
-const upload = require('../middleware/upload');
-const authMiddleware = require('../middleware/auth');
 
-// Upload de imagem (protegido)
-router.post('/', authMiddleware, upload.single('image'), (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ error: 'Nenhum arquivo enviado' });
-        }
+// Configurar armazenamento (salva em /uploads)
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, 'uploads/'),
+    filename: (req, file, cb) =>
+        cb(null, Date.now() + path.extname(file.originalname))
+});
 
-        // Retornar URL da imagem
-        const imageUrl = `/uploads/${req.file.filename}`;
+const upload = multer({ storage });
 
-        res.json({
-            message: 'Imagem enviada com sucesso',
-            url: imageUrl,
-            filename: req.file.filename
-        });
-    } catch (error) {
-        console.error('Erro no upload:', error);
-        res.status(500).json({ error: 'Erro ao fazer upload da imagem' });
+// Rota para upload de imagem
+router.post('/', upload.single('imagem'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'Nenhum arquivo enviado' });
     }
+
+    const imagePath = `/uploads/${req.file.filename}`;
+    res.status(200).json({ path: imagePath });
 });
 
 module.exports = router;
