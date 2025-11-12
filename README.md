@@ -136,7 +136,7 @@ DB_PORT=3306
 
 JWT_SECRET=root
 
-FRONTEND_URL=http://localhost:8080
+FRONTEND_URL=http://localhost:5500
 ```
 
 ### 4. Iniciar o Backend
